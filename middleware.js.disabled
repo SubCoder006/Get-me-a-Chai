@@ -1,0 +1,35 @@
+import { withAuth } from "next-auth/middleware";
+
+export default withAuth(
+  // Main middleware function - only handle redirects here
+  function middleware(req) {
+    // Just log for debugging, don't do any redirects here
+    console.log("Middleware:", req.nextUrl.pathname, "Token:", !!req.nextauth.token);
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
+        
+        // Allow login page for everyone
+        if (pathname === "/login") return true;
+        
+        // Protect earnings and profile routes
+        if (pathname.startsWith("/earnings") || pathname.startsWith("/profile")) {
+          return !!token;
+        }
+        
+        // Allow everything else
+        return true;
+      },
+    },
+  }
+);
+
+// Only protect specific routes
+export const config = {
+  matcher: [
+    "/earnings/:path*",
+    "/profile/:path*"
+  ]
+};
